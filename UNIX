@@ -1,0 +1,83 @@
+24/02/26
+1. File & Directory Management
+mkdir bhargavi - created a directory
+touch snow.txt - added file into the folder
+pwd = print current dir
+   pwd -P = shows the pyshical path(real location)
+   pwd -L = default path
+ls = list in current directory  
+   ls -l = gives the long listing 
+   ls -l filename = to get the specific file
+   ls -t = sorts by timestamp
+   ls -a = shows the hidden files
+   ls -r = gives in reverse order
+   ls/  = list in specific dir
+   ls -S = sort by size
+mv  = to move from one directory to another directory
+cp = copies files (dupicates) 
+   cp filename folder = to copy files into folder
+   cp -r folder = to copy folder
+rmdir = remove the empty directory
+rm = to remove specific file/dir
+stat = show the detailed inforamtion about the file
+   stat filename
+find = to find the file/dir
+   find . -name "filename"
+
+2. File Viewing & Editing
+nano - used to edit the file 
+   nano filename
+cat -used to view the file
+   cat filename
+
+SQL:-
+DDL(Data Definition Language)
+CREATE DATABASE SAMPLE_DB
+1) CREATE- Table 
+   create table Students(student_id int,
+   name varchar(50),
+   age int,
+   subject varchar(100));
+
+  create table Employees(emp_id int,
+  name varchar(50),
+  salary int,
+  department varchar(100));
+
+  create table Hospital(patient_id int,
+  patients varchar(50),
+  gender varchar(50),
+  address varchar(100),
+  doctor_id int);
+
+  create table Customer(customer_id int,
+  name varchar(50),
+  email varchar(50),
+  gender varchar(50),
+  phone int);
+
+select* from tablename 
+
+2)ALTER - 
+  alter table Students
+  add gender varchar(10);
+  
+  alter table Customer
+  drop column phone;
+  
+  Snowflake - alter table Hospital
+              alter column gender
+              set data type varchar(100);
+(SET DATA TYPE is used in Snowflake to change the datatype of an existing column.)
+
+ mysql - alter table Customer
+      modify gender VARCHAR(15);
+3)DROP -
+  drop table Hospital;
+
+4)TRUNCATE - 
+5)RENAME - alter table Customer
+           rename column name to names;
+
+
+
