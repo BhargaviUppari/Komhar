@@ -26,9 +26,11 @@ find = to find the file/dir
 
 2. File Viewing & Editing
 nano - used to edit the file 
-   nano filename
+  nano filename
 cat -used to view the file
-   cat filename
+  cat filename
+less - 
+more -
 
 SQL:-
 DDL(Data Definition Language)
@@ -75,7 +77,17 @@ select* from tablename
 3)DROP -
   drop table Hospital;
 
-4)TRUNCATE - 
+4)TRUNCATE - To remove all the rows keeping the structure
+      INSERT INTO Students VALUES (1, 'Aarav', 20, 'Mathematics', 'Male');
+      INSERT INTO Students VALUES (2, 'Diya', 21, 'Computer Science','Female');
+      INSERT INTO Students VALUES (3, 'Rohan', 19, 'Physics', 'Male');
+      INSERT INTO Students VALUES (4, 'Sneha', 22, 'Chemistry','Female');
+      INSERT INTO Students VALUES (5, 'Karthik', 20, 'Biology', 'Male');
+      INSERT INTO Students VALUES (6, 'Ananya', 21, 'English','Female');
+      
+      TRUNCATE table Students;      
+      select *from Students
+
 5)RENAME - alter table Customer
            rename column name to names;
 
