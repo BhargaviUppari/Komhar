@@ -1,5 +1,9 @@
 24/02/26
 1. File & Directory Management
+cd ~
+cd ../ = step back
+cd ../.. = moves up two directory
+cd - = Switches to last visited directory.
 mkdir bhargavi - created a directory
 touch snow.txt - added file into the folder
 pwd = print current dir
@@ -23,18 +27,37 @@ stat = show the detailed inforamtion about the file
    stat filename
 find = to find the file/dir
    find . -name "filename"
+   find . = current location
 
 2. File Viewing & Editing
 nano - used to edit the file 
   nano filename
 cat -used to view the file
-  cat filename
+   [cat filename]  
+   [cat -n file = Numbers ALL lines]
+   [cat -b file = Numbers non-empty lines only]
+more - used to view the large files
 less - 
-more -
+head - Displays the first 10 lines of a file by default.
+   head -3 filename(gives three lines, here space btw lines also considered as lines)
+tail - Displays the last 10 lines of a file by default.
+   tail -2 filename 
+tail -f = is used for real-time log monitoring(anything which updated on the file)
+vi/vim - used to edit the file,basically to add or make changes.
+      [i - insert]
+      [esc :w - save without exiting]
+      [esc :wq - save and quit]
+      [:q! - quit without saving]
+      [--help(mobaxterm) = if anything needed you can see here]
 
 SQL:-
+
 DDL(Data Definition Language)
 CREATE DATABASE SAMPLE_DB
+
+CREATE SCHEMA sample_schema;
+SHOW SCHEMAS;
+
 1) CREATE- Table 
    create table Students(student_id int,
    name varchar(50),
@@ -90,6 +113,145 @@ select* from tablename
 
 5)RENAME - alter table Customer
            rename column name to names;
+
+25/02/26
+3) Search & Text Processing
+seq 1 5000 > bigdata.tx = used to create a large metadata once
+
+for i in {1..5000}
+do
+echo "$i name_$i" >> bigdata.txt
+done
+   [to add more 5000 data with names]
+   
+grep(global regular expression print) - Used to search for a word or pattern inside a file
+[grep "name_19" bigdata.txt]
+[grep -c "name_19" bigdata.txt = gives the count]
+[grep -n "name_19" bigdata.txt = shows line number]
+[grep -v "name_19" bigdata.txt = Shows all lines except Name_19]
+[grep -i "name_19" bigdata.txt = ignores case sensitive]
+
+sed = Stream Editor(Used to:Replace text,Delete lines,Insert lines,Modify file content,Filter output)
+      It works line by line.
+   [sed 's/old/new/' filename] s = substitute
+   [sed 's/old/new/g' filename = make changes entirely]
+   [sed -i 's/old/new/g' filename = save the changes]
+   [sed -n 20,40p filename = gives those lines in btw 20 and 40] p = print
+   [sed '5d' filename = deletes only line number 5]
+   [sed '5,10d' filename = deletes lines from 5 to 10]
+   [sed '/Name_10/d' bigdata.txt = Deletes lines containing Name_10]
+   [sed '/5000/i\hello' bigdata.txt = add before 5000] \ tells sed: The text after this is a new line to insert
+   [sed '/5000/a\hello' bigdata.txt = adds after 5000]
+   [sed 's/emp/employee/g' bigdata.txt > output.txt = Output goes to output.txt,If output.txt already exists → it is overwritten]
+   [sed 's/emp/employee/g' bigdata.txt >> output.txt = It does NOT erase existing content, It adds new output at bottom]
+[nl - adds the number]
+
+awk - is used for pattern-based text processing and column manipulation.
+      we can also change and modify the data using awk
+[awk '{print $2}' filename = prints the 2nd col]
+[awk '{print $2,$3}' filename = prints the 2nd,3rd col]
+[awk '{print $2}' filename | sort | uniq = used to remove dupilcates from particular col]
+
+cut - used to extract specific columns from a file using a delimiter.
+[cut -d',' -f2 filename = extracts comma seperated data]
+
+*[THE DIFF BETWEEN awk AND cut IS awk CAN PERFORM OPERATIONS, cut CANNOT]*
+
+sort - used to arrange lines in alphabetical or numerical order.
+[sort -n filename = Sorts numbers numerically]
+[sort -r filename = Reverse order]
+[sort -k filename = 	Sort by column] -k = column
+[sort -u filename = 	Unique values]
+[sort -f filename = 	Ignore case]
+[sort -M filename = 	Sorts month names]
+[sort -t filename = 	Delimiter] -t = delimiter
+
+uniq - used to remove duplicate adjacent lines from sorted data.
+[sort filename | uniq = removes duplicates]
+[uniq filename = only if duplicates are together]
+
+wc = Shows lines, words, characters
+   [wc -l = Count lines]
+   [wc -w = Count words]
+   [wc -c = Count characters(bytes)]
+   [wc -m = Count characters]
+
+tr = used to replace or delete characters from input text
+   [tr 'a-z' 'A-Z' < filename = Converts lowercase letters to uppercase]      
+   [echo "bhargavi" | tr 'a' 'A' = bhArgavi]
+
+4) File Permissions & Ownership
+chmod - used to change file or directory permissions
+      [r-Read-4]
+      [w-Write-2]
+      [x-Execute-1]
+      [- file]
+    1) Symbolic way- chmod [who][operator][permission] file
+         Who	Meaning
+         u	   User      rw-(can read and write,cannot execute)
+         g	   Group     ---(cannot read,write,execute)
+         o	   Others    r--(can read,cannot write,cannot execute)
+         a	   All
+         Operators:
+         +	 Add permission
+         -	 Remove permission
+         =   Set exact permission
+         [chmod u+x snow.txt = -rwx---r--]  
+         [chmod u-w filename = -r-x---r--]
+   2) Numeric way - chmod XYZ file
+         X = User
+         Y = Group
+         Z = Others
+     [chmod 755 filename = rwxr-xr-x]
+      7 = 4+2+1 = rwx
+      5 = 4+0+1 = r-x
+      5 = 4+0+1 = r-x
+chown - used to change the ownership of a file or directory.
+    [-rw-r--r-- 1 BHARGAVI None 202 snow.txt]
+         BHARGAVI → Owner
+         None → Group
+    [sudo chown bhargavi snow.txt = changes owner to bhargavi] sudo = superuser do
+
+chgrp = Change Group
+        It is used to change the group ownership of a file or directory.
+      [chgrp groupname filename]
+      [sudo chgrp developers filename]
+      [sudo chgrp -R developers project_folder[ -R = apply to folder and all files inside
+
+umask - defines the default permission mask for newly created files and directories
+        It controls what permissions are removed by default
+
+         Type	     Maximum
+         File	      666
+         Directory	777
+
+< – Input Redirection
+    Takes input for a command from a file instead of keyboard
+    [wc -l < filename = Counts lines in filename using input redirection]
+
+| – Pipe
+    Sends output of one command as input to another command 
+    [cat snow.txt | grep "IT" = Filters lines containing "IT"]
+
+2> – Redirect Errors
+     Redirects error messages (stderr) to a file
+     [ls wrongfile 2> error.txt = Saves error message into error.txt]
+
+& – Run in Background
+    Runs a command in the background without blocking the terminal
+    [sleep 10 & = Runs sleep command in background]
+
+To stop the running jobs - 1) check the running jobs = jobs
+                           2) stop using kill = [ps(finding process ID(PID)]
+                                                [kill %1] %1 = job number from jobs
+
+
+
+
+
+
+
+
 
 
 
