@@ -5,6 +5,7 @@ cd ../ = step back
 cd ../.. = moves up two directory
 cd - = Switches to last visited directory.
 mkdir bhargavi - created a directory
+cd bhargavi
 touch snow.txt - added file into the folder
 pwd = print current dir
    pwd -P = shows the pyshical path(real location)
@@ -116,6 +117,7 @@ select* from tablename
 
 25/02/26
 3) Search & Text Processing
+
 seq 1 5000 > bigdata.tx = used to create a large metadata once
 
 for i in {1..5000}
@@ -224,26 +226,95 @@ umask - defines the default permission mask for newly created files and director
          Type	     Maximum
          File	      666
          Directory	777
+5)Redirection & Pipes 
+      < – Input Redirection
+          Takes input for a command from a file instead of keyboard
+          [wc -l < filename = Counts lines in filename using input redirection]
+      
+      | – Pipe
+          Sends output of one command as input to another command 
+          [cat snow.txt | grep "IT" = Filters lines containing "IT"]
+      
+      2> – Redirect Errors
+           Redirects error messages (stderr) to a file
+           [ls wrongfile 2> error.txt = Saves error message into error.txt]
+      
+      & – Run in Background
+          Runs a command in the background without blocking the terminal
+          [sleep 10 & = Runs sleep command in background]
+      
+      To stop the running jobs - 1) check the running jobs = jobs
+                                 2) stop using kill = [ps(finding process ID(PID)]
+                                                      [kill %1] %1 = job number from jobs(not working in mobaxterm)
+                                                      [kill PID = to kill the job]    
+6)Compression & Archiving
+   mkdir unix
+   cd unix
+   echo "Data 1" > a.txt  (Creates a file named a.txt and writes “Data 1” into it)
+   echo "Data 2" > b.txt  (Creates a file named b.txt and writes “Data 2” into it)
+   
+   tar -cvf files.tar a.txt b.txt (Creates an archive file named files.tar containing a.txt and b.txt)
+         [-c → create archive]
+         [-v → show progress]
+         [-f → specify file name]
 
-< – Input Redirection
-    Takes input for a command from a file instead of keyboard
-    [wc -l < filename = Counts lines in filename using input redirection]
+   tar -xvf files.tar (Extracts (unpacks) the contents of files.tar)
+         [-x → extract]
+         [-v → show files being extracted]
+      [tar -czvf backup.tar.gz project_folder = to backup data]
 
-| – Pipe
-    Sends output of one command as input to another command 
-    [cat snow.txt | grep "IT" = Filters lines containing "IT"]
+   gzip a.txt  (Compresses a.txt into a.txt.gz, Original a.txt gets removed)
+         [gzip -k = keeps the original and compresses]
 
-2> – Redirect Errors
-     Redirects error messages (stderr) to a file
-     [ls wrongfile 2> error.txt = Saves error message into error.txt]
+   gunzip a.txt.gz  (Decompresses a.txt.gz back to a.txt)
+   
+   tar -czvf files.tar.gz a.txt b.txt  (Creates a compressed archive files.tar.gz)
+        [-z = compress using gzip]
+   tar -xzvf files.tar.gz  (Creates a compressed archive files.tar.gz)
+        [-z = unzip(gzip)]
+   zip files.zip a.txt b.txt  (Creates a zip file named files.zip containing a.txt and b.txt)
 
-& – Run in Background
-    Runs a command in the background without blocking the terminal
-    [sleep 10 & = Runs sleep command in background]
+   unzip files.zip  (Extracts contents of files.zip) 
+            tar    → combine files (archive only)
+            gzip   → reduce file size (compress only)
+            gunzip → decompress .gz file
+            zip    → combine + compress files
+            unzip  → extract .zip file
 
-To stop the running jobs - 1) check the running jobs = jobs
-                           2) stop using kill = [ps(finding process ID(PID)]
-                                                [kill %1] %1 = job number from jobs
+If you want to delete any of the above use (rm)
+
+7)Process Management
+   ps - Show processes
+      [ps]
+      [ps -p 1234 = show specific PID]
+      [ps -eo pid,ppid,cmd,%mem,%cpu = shows selected cols only]
+   top - Live monitoring
+      [top]
+   htop - Advanced monitoring
+   kill- Kill by PID
+      [kill 1269]
+      [kill -9 PID = force kill]
+      [kill -STOP PID = pause process]
+      [kill -CONT PID = resume process]
+      [kill -l = list all signals]
+   killall- Kill by name
+      [killall sleep
+      [killall -9 sleep = force kill by name]
+      [killall -u username = kill by user]
+   jobs - Show background jobs
+      [jobs]
+      [jobs -r = show only running]
+      [jobs -s = show only stopped]
+      [jobs -l = show PID]
+   bg	- Resume background
+      [bg %1]
+   fg - 	Resume foreground
+      [fg %1]
+   nohup - Run even after logout
+        [nohup sleep 400 &]
+
+
+
 
 
 
