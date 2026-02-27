@@ -50,69 +50,6 @@ vi/vim - used to edit the file,basically to add or make changes.
       [:q! - quit without saving]
       [--help(mobaxterm) = if anything needed you can see here]
 
-SQL:-
-
-DDL(Data Definition Language)
-CREATE DATABASE SAMPLE_DB
-
-CREATE SCHEMA sample_schema;
-SHOW SCHEMAS;
-
-1) CREATE- Table 
-   create table Students(student_id int,
-   name varchar(50),
-   age int,
-   subject varchar(100));
-
-  create table Employees(emp_id int,
-  name varchar(50),
-  salary int,
-  department varchar(100));
-
-  create table Hospital(patient_id int,
-  patients varchar(50),
-  gender varchar(50),
-  address varchar(100),
-  doctor_id int);
-
-  create table Customer(customer_id int,
-  name varchar(50),
-  email varchar(50),
-  gender varchar(50),
-  phone int);
-
-select* from tablename 
-
-2)ALTER - 
-  alter table Students
-  add gender varchar(10);
-  
-  alter table Customer
-  drop column phone;
-  
-  Snowflake - alter table Hospital
-              alter column gender
-              set data type varchar(100);
-(SET DATA TYPE is used in Snowflake to change the datatype of an existing column.)
-
- mysql - alter table Customer
-      modify gender VARCHAR(15);
-3)DROP -
-  drop table Hospital;
-
-4)TRUNCATE - To remove all the rows keeping the structure
-      INSERT INTO Students VALUES (1, 'Aarav', 20, 'Mathematics', 'Male');
-      INSERT INTO Students VALUES (2, 'Diya', 21, 'Computer Science','Female');
-      INSERT INTO Students VALUES (3, 'Rohan', 19, 'Physics', 'Male');
-      INSERT INTO Students VALUES (4, 'Sneha', 22, 'Chemistry','Female');
-      INSERT INTO Students VALUES (5, 'Karthik', 20, 'Biology', 'Male');
-      INSERT INTO Students VALUES (6, 'Ananya', 21, 'English','Female');
-      
-      TRUNCATE table Students;      
-      select *from Students
-
-5)RENAME - alter table Customer
-           rename column name to names;
 
 25/02/26
 3) Search & Text Processing

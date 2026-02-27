@@ -1,0 +1,40 @@
+25/02/26
+
+use snowflake_db;
+create table Employees(emp_id int,
+  name varchar(50),
+  salary int,
+  department varchar(100));
+
+INSERT INTO EMPLOYEES VALUES (1, 'Ananya', 21000, 'IT');
+
+select * from employees;
+
+delete from Employees where emp_id = 1;
+
+INSERT INTO Employees VALUES (101, 'Aarav', 50000, 'HR');
+INSERT INTO Employees VALUES (102, 'Diya', 65000, 'Finance');
+INSERT INTO Employees VALUES (103, 'Rohan', 72000, 'IT');
+INSERT INTO Employees VALUES (104, 'Sneha', 48000, 'Marketing');
+INSERT INTO Employees VALUES (105, 'Karthik', 80000, 'IT');
+INSERT INTO Employees VALUES (106, 'Ananya', 55000, 'HR');
+
+delete from Employees where emp_id = 103;
+
+create table Hospital(patient_id int,
+  patients varchar(50),
+  gender varchar(50),
+  address varchar(100),
+  doctor_id int);
+
+INSERT INTO Hospital VALUES (1, 'Aarav', 'Male', 'Hyderabad', 201);
+INSERT INTO Hospital VALUES (2, 'Diya', 'Female', 'Bangalore', 202);
+INSERT INTO Hospital VALUES (3, 'Rohan', 'Male', 'Chennai', 203);
+INSERT INTO Hospital VALUES (4, 'Sneha', 'Female', 'Mumbai', 204);
+INSERT INTO Hospital VALUES (5, 'Karthik', 'Male', 'Delhi', 205);
+
+select*from hospital;
+
+update  hospital 
+set patients = 'Radha' 
+where patient_id = 2;

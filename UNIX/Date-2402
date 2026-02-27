@@ -1,0 +1,52 @@
+24/02/26
+
+1. File & Directory Management
+cd ~
+cd ../ = step back
+cd ../.. = moves up two directory
+cd - = Switches to last visited directory.
+mkdir bhargavi - created a directory
+touch snow.txt - added file into the folder
+pwd = print current dir
+   pwd -P = shows the pyshical path(real location)
+   pwd -L = default path
+ls = list in current directory  
+   ls -l = gives the long listing 
+   ls -l filename = to get the specific file
+   ls -t = sorts by timestamp
+   ls -a = shows the hidden files
+   ls -r = gives in reverse order
+   ls/  = list in specific dir
+   ls -S = sort by size
+mv  = to move from one directory to another directory
+cp = copies files (dupicates) 
+   cp filename folder = to copy files into folder
+   cp -r folder = to copy folder
+rmdir = remove the empty directory
+rm = to remove specific file/dir
+stat = show the detailed inforamtion about the file
+   stat filename
+find = to find the file/dir
+   find . -name "filename"
+   find . = current location
+
+2. File Viewing & Editing
+nano - used to edit the file 
+  nano filename
+cat -used to view the file
+   [cat filename]  
+   [cat -n file = Numbers ALL lines]
+   [cat -b file = Numbers non-empty lines only]
+more - used to view the large files
+less - 
+head - Displays the first 10 lines of a file by default.
+   head -3 filename(gives three lines, here space btw lines also considered as lines)
+tail - Displays the last 10 lines of a file by default.
+   tail -2 filename 
+tail -f = is used for real-time log monitoring(anything which updated on the file)
+vi/vim - used to edit the file,basically to add or make changes.
+      [i - insert]
+      [esc :w - save without exiting]
+      [esc :wq - save and quit]
+      [:q! - quit without saving]
+      [--help(mobaxterm) = if anything needed you can see here]

@@ -1,0 +1,97 @@
+26/02/26
+Scenario based queries
+
+create table Employees(emp_id int,
+  name varchar(50),
+  salary int,
+  department varchar(100));
+
+INSERT INTO Employees VALUES (101, 'Aarav', 50000, 'HR');
+INSERT INTO Employees VALUES (102, 'Diya', 65000, 'Finance');
+INSERT INTO Employees VALUES (103, 'Rohan', 72000, 'IT');
+INSERT INTO Employees VALUES (104, 'Sneha', 48000, 'Marketing');
+INSERT INTO Employees VALUES (105, 'Karthik', 80000, 'IT');
+INSERT INTO Employees VALUES (106, 'Ananya', 55000, 'HR');
+
+1)increase the salary by 10% of IT department
+    
+    update employees
+    set salary = salary* 1.10
+    where department = 'IT';
+
+2) increase the salary of employees whose salary is less than 60000
+
+    update employees
+    set salary = salary + 5000
+    where salary = salary < 60000;
+
+3)delete all the employees working in Marketing
+Snowflake is in auto commit mode ,to remove that
+   alter session
+   set autocommit = false;
+
+ or else use begin; whenever to delete the row 
+
+    delete from employees
+    where department = 'Marketing';
+
+to restore it back then use rollback;
+
+4) To delete the records inside the particular column keeping the column as it is only to remove the records inside the column
+   
+    update employees
+    set name = ' ';   # if wanted blank
+
+    update employees
+    set name = Null;  # if wanted Null
+
+* delete works on rows , not columns    
+
+5) To load the files into the table we can use different file formats
+     
+     COPY INTO Employees
+     FROM @my_stage/employees.csv
+     FILE_FORMAT = (FORMAT_NAME = my_csv_format);
+
+6)Increase salary by 10% only if department avg salary is greater than 60000
+    update employees
+    set salary = salary + (salary*1.10)
+    where department IN (
+    select department
+    from employees
+    group by department
+    having avg(salary) > 60000
+    );
+
+7)Delete duplicate salary records keep the lowest emp_id
+    if multiple employees have the same salary,need to keep one with smallest emp_id
+
+    delete from employees 
+    where emp_id not in (        # IN is used to check the value matches in a list or subquery
+        select min(emp_id)       # NOT IN does the opposite to IN
+        from employees
+        group by salary
+    );
+    
+8) to delete the third highest paid employee
+
+    delete from Employees 
+    where salary = (
+        select distinct salary
+        from Employees
+        order by salary desc      # order by used to sort the result
+        limit 1 offset 2          # limit restrict the number of rows returned
+    )                             # offset skips the rows before returning results
+ 
+JOIN
+    create schema joins_schema;
+    use schema joins_schema;
+
+    SELECT s.student_id,
+        s.name,
+        e.emp_id,
+        e.department
+    FROM Students s
+    INNER JOIN Employees e
+    ON s.name = e.name;
+    
