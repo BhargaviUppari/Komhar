@@ -160,12 +160,12 @@ Target → FACT_ORDERS
     2 CDC Processing → update/insert valid records
     3 Metrics Tracking → record counts in ORDER_PROCESS_METRICS
 
-MERGE Logic:
-Target table = FACT_ORDERS   
+    MERGE Logic:
+    Target table = FACT_ORDERS   
 
 
-SELECT*FROM ORDER_ERROR_LOG;
-SELECT*FROM ORDER_PROCESS_METRICS;
+    SELECT*FROM ORDER_ERROR_LOG;
+    SELECT*FROM ORDER_PROCESS_METRICS;
 
 Invalid records  → Insert into ORDER_ERROR_LOG:-
 
