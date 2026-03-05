@@ -111,6 +111,8 @@ AMOUNT NUMBER(10,2),
 STATUS STRING 
 );
 
+Staging (Staging Table) is a temporary table where raw data is first loaded before processing it into the final tables. 
+
 Assignments
 
 1) Join Customer and Fact table 

@@ -1,0 +1,228 @@
+03/03/26
+
+1) Find the latest order per customer
+
+SELECT *
+FROM(
+    SELECT CUSTOMER_ID,ORDER_ID, ORDER_DATE, AMOUNT,
+    ROW_NUMBER() OVER (PARTITION BY CUSTOMER_ID ORDER BY ORDER_DATE DESC) AS RN
+    FROM  FACT_ORDERS)
+    WHERE (RN = 1);
+
+    PARTITION BY - Divide data into groups
+    ORDER BY	-  Decide ranking inside group
+    ROW_NUMBER  -  Assign numbers
+
+2) CTE-Based Aggregation:-
+  (Common Table Expression)
+    First calculate aggregated data inside a CTE
+    Then use that aggregated result in the main query
+ It is a temporary result set defined using WITH
+
+(CTE) is a temporary result set in SQL that you can reference within a single query
+You cannot use the CTE outside the query
+
+    ALTER TABLE DIM_CUSTOMER
+    ADD UPDATED_DATE TIMESTAMP;
+
+    MERGE INTO DIM_CUSTOMER DC
+    USING (
+        WITH CUSTOMER_REVENUE AS(
+            SELECT CUSTOMER_ID, SUM(AMOUNT) AS TOTAL_REVENUE
+            FROM FACT_ORDERS
+            GROUP BY CUSTOMER_ID
+        ),
+        
+        CUSTOMER_CATEGORY AS(
+            SELECT CUSTOMER_ID,
+                TOTAL_REVENUE,
+                CASE
+                    WHEN TOTAL_REVENUE > 50000 THEN 'PLATINUM'
+                    WHEN TOTAL_REVENUE BETWEEN 20000 AND 50000 THEN 'GOLD'
+                    ELSE 'SILVER'
+                    END AS CUSTOMER_TYPE
+                FROM CUSTOMER_REVENUE    
+            )
+            SELECT* FROM CUSTOMER_CATEGORY
+            ) CC
+            
+            ON DC.CUSTOMER_ID = CC.CUSTOMER_ID
+        
+            WHEN MATCHED THEN 
+            UPDATE SET 
+                DC.CUSTOMER_TYPE = CC.CUSTOMER_TYPE,
+                DC.UPDATED_DATE= CURRENT_TIMESTAMP()
+        
+            WHEN NOT MATCHED THEN
+            INSERT(CUSTOMER_ID, CUSTOMER_TYPE, UPDATED_DATE) 
+            VALUES (CC.CUSTOMER_ID, CC.CUSTOMER_TYPE, CURRENT_TIMESTAMP());
+
+
+    SELECT * FROM DIM_CUSTOMER;
+
+ ##Target Table = DIM_CUSTOMER
+ ##CUSTOMER_REVENUE (CTE)
+   CUSTOMER_CATEGORY (CTE)
+##Source Table = CUSTOMER_CATEGORY (CTE result)
+
+        FACT_ORDERS
+            ↓
+        CUSTOMER_REVENUE  (SUM of AMOUNT)
+            ↓
+        CUSTOMER_CATEGORY (PLATINUM / GOLD / SILVER classification)
+            ↓
+        MERGE
+            ↓
+        DIM_CUSTOMER  ← Target Table
+
+
+b. Generate a Customer Performance Report that shows: 
+
+    WITH CUSTOMER_REVENUE AS
+(
+    -- Calculate total revenue per customer
+    SELECT 
+        C.CUSTOMER_ID, C.CUSTOMER_NAME, C.CITY,
+        SUM(F.AMOUNT) AS TOTAL_REVENUE
+    FROM DIM_CUSTOMER C
+    JOIN FACT_ORDERS F
+        ON C.CUSTOMER_ID = F.CUSTOMER_ID
+    GROUP BY 
+        C.CUSTOMER_ID,C.CUSTOMER_NAME,C.CITY
+),
+
+LATEST_ORDER AS
+(
+    -- Get latest order per customer
+    SELECT
+        CUSTOMER_ID,
+        AMOUNT AS LATEST_ORDER_AMOUNT,
+        ROW_NUMBER() OVER(
+            PARTITION BY CUSTOMER_ID
+            ORDER BY ORDER_DATE DESC
+        ) AS RN
+    FROM FACT_ORDERS
+),
+
+FINAL_REPORT AS
+(
+    SELECT
+        CR.CUSTOMER_NAME,
+        CR.CITY,
+        CR.TOTAL_REVENUE,
+
+        CASE
+            WHEN CR.TOTAL_REVENUE >= 10000 THEN 'HIGH'
+            WHEN CR.TOTAL_REVENUE >= 5000 THEN 'MEDIUM'
+            ELSE 'LOW'
+        END AS REVENUE_CATEGORY,
+
+        LO.LATEST_ORDER_AMOUNT,
+
+        RANK() OVER(
+            PARTITION BY CR.CITY
+            ORDER BY CR.TOTAL_REVENUE DESC
+        ) AS CUSTOMER_RANK
+
+    FROM CUSTOMER_REVENUE CR
+    JOIN LATEST_ORDER LO
+        ON CR.CUSTOMER_ID = LO.CUSTOMER_ID
+    WHERE LO.RN = 1
+)
+
+SELECT *
+FROM FINAL_REPORT;
+We calculate total revenue first, then apply ranking.
+
+PARTITION BY → creates groups
+ORDER BY → decides ranking inside group
+RANK() → assigns position 
+
+3) CDC + Bad Data Capture + Metrics  
+    
+    CREATE OR REPLACE TABLE ORDER_ERROR_LOG ( 
+    ORDER_ID INT, 
+    ERROR_REASON STRING, 
+    ERROR_TS TIMESTAMP DEFAULT CURRENT_TIMESTAMP 
+    ); 
+    CREATE OR REPLACE TABLE ORDER_PROCESS_METRICS ( 
+    PROCESS_DATE DATE, 
+    TOTAL_STG_COUNT INT, 
+    VALID_COUNT INT, 
+    INVALID_COUNT INT, 
+    INSERT_COUNT INT, 
+    UPDATE_COUNT INT, 
+    PROCESS_TS TIMESTAMP DEFAULT CURRENT_TIMESTAMP); 
+
+Source → STG_ORDERS (staging table)
+Target → FACT_ORDERS
+    1 Bad Data Capture → store invalid records in ORDER_ERROR_LOG
+    2 CDC Processing → update/insert valid records
+    3 Metrics Tracking → record counts in ORDER_PROCESS_METRICS
+
+MERGE Logic:
+Target table = FACT_ORDERS   
+
+
+SELECT*FROM ORDER_ERROR_LOG;
+SELECT*FROM ORDER_PROCESS_METRICS;
+
+Invalid records  → Insert into ORDER_ERROR_LOG:-
+
+    INSERT INTO ORDER_ERROR_LOG (ORDER_ID, ERROR_REASON)
+    SELECT S.ORDER_ID,
+        CASE 
+            WHEN S.AMOUNT <=0 THEN 'INVALID AMOUNT'
+            WHEN S.ORDER_DATE > CURRENT_DATE THEN 'INVALID ORDER DATE'
+            WHEN C.CUSTOMER_ID IS NULL THEN 'CUSTOMER NOT FOUND' 
+                
+        END
+        FROM STG_ORDERS S
+        LEFT JOIN DIM_CUSTOMER C
+        ON S.CUSTOMER_ID = C.CUSTOMER_ID
+        
+        WHERE S.AMOUNT<=0 
+        OR S.ORDER_DATE > CURRENT_DATE 
+        OR C.CUSTOMER_ID IS NULL;
+
+    SELECT * FROM STG_ORDERS;
+
+    SELECT S.*
+    FROM STG_ORDERS S
+    LEFT JOIN DIM_CUSTOMER D
+    ON S.CUSTOMER_ID = D.CUSTOMER_ID
+    WHERE D.CUSTOMER_ID IS NULL;
+
+    INSERT INTO STG_ORDERS
+    (ORDER_ID, CUSTOMER_ID, ORDER_DATE, AMOUNT, STATUS)
+    VALUES
+    (101, 999, '2026-05-01', -50, 'NEW');
+
+    DESC TABLE STG_ORDERS;   # to see the order of table(columns)
+
+Valid records:-
+    SELECT S.*
+    FROM STG_ORDERS S
+    JOIN DIM_CUSTOMER D
+    ON S.CUSTOMER_ID = D.CUSTOMER_ID
+    WHERE
+    S.AMOUNT > 0
+    AND S.ORDER_DATE <= CURRENT_DATE;   #Valid conditions are the opposite of invalid conditions
+
+5)  Stored procedure:- A Stored Procedure is a saved SQL program stored inside the database that you can execute whenever needed
+                       A Stored Procedure is a set of SQL statements stored in the database and executed as a single unit
+
+            
+        CREATE OR REPLACE PROCEDURE USP_PROCESS_DAILY_ORDERS()
+        RETURNS STRING
+        LANGUAGE SQL
+        AS
+        $$
+        BEGIN
+
+        RETURN 'PROCESS COMPLETED';
+
+        END;
+        $$;
+
+        CALL USP_PROCESS_DAILY_ORDERS();
