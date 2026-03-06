@@ -140,11 +140,14 @@ RANK() → assigns position
 
 3) CDC + Bad Data Capture + Metrics  
     
+--CDC + Bad Data Capture + Metrics  
+
     CREATE OR REPLACE TABLE ORDER_ERROR_LOG ( 
     ORDER_ID INT, 
     ERROR_REASON STRING, 
     ERROR_TS TIMESTAMP DEFAULT CURRENT_TIMESTAMP 
-    ); 
+    );
+
     CREATE OR REPLACE TABLE ORDER_PROCESS_METRICS ( 
     PROCESS_DATE DATE, 
     TOTAL_STG_COUNT INT, 
@@ -152,23 +155,12 @@ RANK() → assigns position
     INVALID_COUNT INT, 
     INSERT_COUNT INT, 
     UPDATE_COUNT INT, 
-    PROCESS_TS TIMESTAMP DEFAULT CURRENT_TIMESTAMP); 
-
-Source → STG_ORDERS (staging table)
-Target → FACT_ORDERS
-    1 Bad Data Capture → store invalid records in ORDER_ERROR_LOG
-    2 CDC Processing → update/insert valid records
-    3 Metrics Tracking → record counts in ORDER_PROCESS_METRICS
-
-    MERGE Logic:
-    Target table = FACT_ORDERS   
-
+    PROCESS_TS TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
 
     SELECT*FROM ORDER_ERROR_LOG;
     SELECT*FROM ORDER_PROCESS_METRICS;
 
-Invalid records  → Insert into ORDER_ERROR_LOG:-
-
+--Bad Data Capture
     INSERT INTO ORDER_ERROR_LOG (ORDER_ID, ERROR_REASON)
     SELECT S.ORDER_ID,
         CASE 
@@ -198,16 +190,86 @@ Invalid records  → Insert into ORDER_ERROR_LOG:-
     VALUES
     (101, 999, '2026-05-01', -50, 'NEW');
 
-    DESC TABLE STG_ORDERS;   # to see the order of table(columns)
+    DESC TABLE STG_ORDERS;
 
-Valid records:-
     SELECT S.*
     FROM STG_ORDERS S
     JOIN DIM_CUSTOMER D
     ON S.CUSTOMER_ID = D.CUSTOMER_ID
     WHERE
     S.AMOUNT > 0
-    AND S.ORDER_DATE <= CURRENT_DATE;   #Valid conditions are the opposite of invalid conditions
+    AND S.ORDER_DATE <= CURRENT_DATE;
+
+    #Valid conditions are the opposite of invalid conditions
+
+    SELECT COUNT(*) 
+    FROM STG_ORDERS;
+
+ -- CDC
+    MERGE INTO FACT_ORDERS F
+    USING (
+    SELECT * FROM(
+        SELECT S.*,
+        ROW_NUMBER() OVER(PARTITION BY ORDER_ID ORDER BY ORDER_DATE DESC) AS RN
+        FROM STG_ORDERS S
+        WHERE S.AMOUNT > 0
+        AND S.ORDER_DATE <= CURRENT_DATE
+        ) T
+        WHERE RN = 1
+    ) S 
+    ON F.ORDER_ID = S.ORDER_ID
+
+    WHEN MATCHED 
+    THEN UPDATE SET
+    F.AMOUNT = S.AMOUNT, F.STATUS = S.STATUS, 
+    F.ORDER_DATE = S.ORDER_DATE, F.UPDATED_TS = CURRENT_TIMESTAMP
+
+    WHEN NOT MATCHED
+    THEN INSERT (ORDER_ID, CUSTOMER_ID, ORDER_DATE, AMOUNT, STATUS)
+    VALUES (S.ORDER_ID, S.CUSTOMER_ID, S.ORDER_DATE,
+    S.AMOUNT, S.STATUS);
+
+    SELECT *
+    FROM FACT_ORDERS
+    WHERE UPDATED_TS::DATE = CURRENT_DATE;
+
+-- metrics 
+    INSERT INTO ORDER_PROCESS_METRICS(
+    PROCESS_DATE, TOTAL_STG_COUNT, VALID_COUNT, INVALID_COUNT,
+    INSERT_COUNT, UPDATE_COUNT 
+    )
+    SELECT CURRENT_DATE,
+    (SELECT COUNT(*) FROM STG_ORDERS),
+    (
+    SELECT COUNT(*) FROM STG_ORDERS S
+    JOIN DIM_CUSTOMER D
+    ON S.CUSTOMER_ID = D.CUSTOMER_ID
+    WHERE S.AMOUNT > 0
+    AND S.ORDER_DATE <= CURRENT_DATE
+    ),
+
+    (
+    SELECT COUNT(*)
+    FROM ORDER_ERROR_LOG
+    WHERE ERROR_TS:: DATE = CURRENT_DATE
+    ),
+
+    (
+    SELECT COUNT(*)
+    FROM FACT_ORDERS
+    WHERE CREATED_TS = CURRENT_DATE
+    ),
+
+    (
+    SELECT COUNT(*)
+    FROM FACT_ORDERS
+    WHERE UPDATED_TS = CURRENT_DATE
+    );
+
+
+    SELECT * FROM FACT_ORDERS;
+    SELECT*FROM STG_ORDERS;
+  
 
 5)  Stored procedure:- A Stored Procedure is a saved SQL program stored inside the database that you can execute whenever needed
                        A Stored Procedure is a set of SQL statements stored in the database and executed as a single unit
@@ -217,12 +279,12 @@ Valid records:-
         RETURNS STRING
         LANGUAGE SQL
         AS
-        $$
+        
         BEGIN
 
         RETURN 'PROCESS COMPLETED';
 
         END;
-        $$;
+        
 
         CALL USP_PROCESS_DAILY_ORDERS();

@@ -1,0 +1,145 @@
+05/03/26
+
+5)  Stored procedure:- A Stored Procedure is a saved SQL program stored inside the database that you can execute whenever needed
+                       A Stored Procedure is a set of SQL statements stored in the database and executed as a single unit
+
+
+CREATE PROCEDURE PROCESS_ORDERS()
+BEGIN
+-- BDC logic
+INSERT INTO ERROR_TABLE ...
+-- CDC logic
+MERGE INTO FACT_TABLE ...
+-- Metrics
+INSERT INTO METRICS_TABLE ...
+END;
+  
+        CREATE OR REPLACE PROCEDURE USP_PROCESS_DAILY_ORDERS()
+        RETURNS STRING
+        LANGUAGE SQL
+        AS
+        
+        BEGIN
+
+        RETURN 'PROCESS COMPLETED';
+
+        END;
+        
+    CALL USP_PROCESS_DAILY_ORDERS(); --When this runs, the database executes all SQL statements inside the procedure
+
+Start Procedure
+    ↓
+Read staging data
+    ↓
+Validate records
+    ↓
+Insert bad data into error table
+    ↓
+MERGE valid data into fact table
+    ↓
+Capture metrics
+    ↓
+Return result
+
+
+        -- Stored Procedure
+        CREATE OR REPLACE PROCEDURE USP_PROCESS_DAILY_ORDERS()
+        RETURNS STRING
+        LANGUAGE SQL
+        AS
+
+        BEGIN
+        RETURN 'PROCESS COMPLETED';
+
+        END;
+
+
+        CALL USP_PROCESS_DAILY_ORDERS();
+
+        CREATE OR REPLACE PROCEDURE USP_PROCESS_DAILY_ORDERS()
+        RETURNS STRING
+        LANGUAGE SQL
+        AS
+
+        BEGIN
+
+        -- Bad data capture
+        INSERT INTO ORDER_ERROR_LOG (ORDER_ID, ERROR_REASON)
+        SELECT S.ORDER_ID,
+            CASE 
+                WHEN S.AMOUNT <=0 THEN 'INVALID AMOUNT'
+                WHEN S.ORDER_DATE > CURRENT_DATE THEN 'INVALID ORDER DATE'
+                WHEN C.CUSTOMER_ID IS NULL THEN 'CUSTOMER NOT FOUND' 
+            END
+        FROM STG_ORDERS S
+        LEFT JOIN DIM_CUSTOMER C
+        ON S.CUSTOMER_ID = C.CUSTOMER_ID
+        WHERE S.AMOUNT<=0 
+        OR S.ORDER_DATE > CURRENT_DATE 
+        OR C.CUSTOMER_ID IS NULL;
+
+        -- CDC Merge
+        MERGE INTO FACT_ORDERS F
+        USING (
+        SELECT * FROM(
+            SELECT S.*,
+            ROW_NUMBER() OVER(PARTITION BY ORDER_ID ORDER BY ORDER_DATE DESC) AS RN
+            FROM STG_ORDERS S
+            WHERE S.AMOUNT > 0
+            AND S.ORDER_DATE <= CURRENT_DATE
+        ) T
+        WHERE RN = 1
+        ) S 
+        ON F.ORDER_ID = S.ORDER_ID
+
+        WHEN MATCHED 
+        THEN UPDATE SET
+        F.AMOUNT = S.AMOUNT,
+        F.STATUS = S.STATUS, 
+        F.ORDER_DATE = S.ORDER_DATE,
+        F.UPDATED_TS = CURRENT_TIMESTAMP
+
+        WHEN NOT MATCHED
+        THEN INSERT (ORDER_ID, CUSTOMER_ID, ORDER_DATE, AMOUNT, STATUS)
+        VALUES (S.ORDER_ID, S.CUSTOMER_ID, S.ORDER_DATE,
+        S.AMOUNT, S.STATUS);
+
+        -- Metrics
+        INSERT INTO ORDER_PROCESS_METRICS(
+        PROCESS_DATE, TOTAL_STG_COUNT, VALID_COUNT, INVALID_COUNT,
+        INSERT_COUNT, UPDATE_COUNT 
+        )
+        SELECT CURRENT_DATE,
+        (SELECT COUNT(*) FROM STG_ORDERS),
+        (
+        SELECT COUNT(*) FROM STG_ORDERS S
+        JOIN DIM_CUSTOMER D
+        ON S.CUSTOMER_ID = D.CUSTOMER_ID
+        WHERE S.AMOUNT > 0
+        AND S.ORDER_DATE <= CURRENT_DATE
+        ),
+        (
+        SELECT COUNT(*)
+        FROM ORDER_ERROR_LOG
+        WHERE ERROR_TS::DATE = CURRENT_DATE
+        ),
+        (
+        SELECT COUNT(*)
+        FROM FACT_ORDERS
+        WHERE CREATED_TS::DATE = CURRENT_DATE
+        ),
+        (
+        SELECT COUNT(*)
+        FROM FACT_ORDERS
+        WHERE UPDATED_TS::DATE = CURRENT_DATE
+        );
+
+        RETURN 'PROCESS COMPLETED SUCCESSFULLY';
+
+        EXCEPTION
+        WHEN OTHER THEN
+            ROLLBACK;
+            RETURN 'PROCESS FAILED';
+
+        END;
+
