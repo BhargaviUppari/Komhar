@@ -1,0 +1,26 @@
+09/03/26
+Step 1-
+1 - https://github.com/nordquant/dbt-student-repo
+2 -  go to fork and create a repo(course) 
+3 -  go to code -> local -> copy the https link
+4 - then open vscode clone the repository paste the copied link, it will redirects to the files
+5 - create a folder on desktop open it.
+
+Step 2- In vscode, Terminal
+1 - pip install 
+2 - uv sync 
+3 - .venv/Scripts/activate (if there is any error refer chatgpt)
+4 - dbt --version
+5 - dbt init --skip-profile-setup airbnb (Your new dbt project "airbnb" was created!)
+    https://udemy-dbt-setup.streamlit.app/ (link for snowflake-dbt setup their you can download profile.yml file)
+    open profile.yml from downloads(files) inside the airbnb
+6 - cd airbnb
+7 - dbt debug (All checks passed!)
+
+
+
+if wanted to create a new project folder then,
+1 - open a Terminal -> select the path where you wanted to create a folder 
+2 - .venv/Scripts/activate
+3 - dbt init sample_dbt(folder name)
+4 - it ask some information , enter those Done.
