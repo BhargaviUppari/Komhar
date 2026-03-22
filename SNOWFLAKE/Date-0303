@@ -1,5 +1,6 @@
 03/03/26
 
+-- ASSIGNMENT 2
 1) Find the latest order per customer
 
 SELECT *

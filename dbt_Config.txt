@@ -1,4 +1,4 @@
-09/03/26
+11/03/26
 Step 1-
 1 - https://github.com/nordquant/dbt-student-repo
 2 -  go to fork and create a repo(course) 
@@ -18,9 +18,16 @@ Step 2- In vscode, Terminal
 7 - dbt debug (All checks passed!)
 
 
-
 if wanted to create a new project folder then,
 1 - open a Terminal -> select the path where you wanted to create a folder 
 2 - .venv/Scripts/activate
 3 - dbt init sample_dbt(folder name)
 4 - it ask some information , enter those Done.
+
+12/03/26
+Very important dbt commands you will use daily
+dbt run        → build models
+dbt test       → validate data
+dbt debug      → check connection
+dbt docs serve → view lineage
+dbt compile    → see compiled SQL

@@ -1,7 +1,7 @@
 25/02/26
 
 3) Search & Text Processing
-seq 1 5000 > bigdata.tx = used to create a large metadata once
+seq 1 5000 > bigdata.txt = used to create a large metadata once
 
 for i in {1..5000}
 do

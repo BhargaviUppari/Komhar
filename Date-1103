@@ -1,0 +1,26 @@
+11/03/26
+
+1 - checking the dbt working
+2 - created a stg_orders , models/staging/stg_orders
+3 - then a fact_orders, models/marts/fact_orders
+
+    dbt run
+    dbt test
+    
+CDC (Change Data Capture) is exactly the next step after staging + fact models
+
+simple real-world CDC pipeline like companies use
+We will build this flow:
+
+    SOURCE TABLE
+        ↓
+    STAGING TABLE
+        ↓
+    DEDUPLICATION
+        ↓
+    MERGE INTO FACT TABLE
+
+    Tool	       Purpose
+   Snowflake	 Data storage + tables
+   VS Code       dbt transformations
+

@@ -1,0 +1,163 @@
+17/03/26
+UNIX Practice
+
+1)Create directory
+    mkdir data_engineering
+2)Create multiple folders
+    mkdir -p data_engineering/{logs,scripts,data,outputs}
+3)Create 5 empty files
+    touch data_engineering/logs/file{1..5}.txt
+4)Copy files
+    cp data_engineering/logs/* data_engineering/backup_logs/
+5)Rename directory
+    mv backup_logs archive_logs
+6)Delete directory with files
+    rm -rf archive_logs
+7)Move all .txt files
+    mv *.txt data_engineering/data/
+8)View file
+    cat orders.log
+9) First 20 rows
+head -n 20 orders.log
+10) Last 50 rows
+tail -n 50 orders.log
+11) Real-time log monitoring
+tail -f orders.log
+12) Count lines, words, characters
+wc orders.log
+13) Show line numbers
+cat -n orders.log
+14) Find ERROR
+grep "ERROR" orders.log
+15) Case insensitive
+grep -i "failed" orders.log
+16) With line numbers
+grep -n "ERROR" orders.log
+17) Count errors
+grep -c "ERROR" orders.log
+18) Exclude SUCCESS
+grep -v "SUCCESS" orders.log
+19) Multiple patterns
+grep -E "ERROR|FAILED" orders.log
+20) Sort file
+sort file.txt
+21) Sort numbers
+sort -n file.txt
+22) Sort by 3rd column
+sort -t',' -k3 file.csv
+23) Descending
+sort -r file.txt
+24) Remove duplicates
+sort file.txt | uniq
+25) Count duplicates
+sort file.txt | uniq -c
+26) Show duplicates only
+sort file.txt | uniq -d
+27) Column Extraction (cut & awk)
+    Extract columns
+    cut -d',' -f1 orders.csv
+    Multiple columns
+    cut -d',' -f1,3 orders.csv
+    Using awk
+    awk -F',' '{print $1}' orders.csv
+    Filter rows
+    awk -F',' '$3 > 600' orders.csv
+    Sum revenue
+    awk -F',' '{sum += $3} END {print sum}' orders.csv
+    Count rows
+    awk 'END {print NR}' orders.csv
+28) Date & Timestamp
+    Current date
+    date
+    Current timestamp
+    date +"%Y-%m-%d %H:%M:%S"
+    Only year
+    date +"%Y"
+    Month
+    date +"%m"
+    Week number
+    date +"%U"
+    Yesterday
+    date -d "yesterday"
+    Tomorrow
+    date -d "tomorrow"
+    Format conversion
+    date -d "2025-03-06" +"%d-%m-%Y"
+2 days ago
+    date -d "2 days ago"
+    Extract hour
+    date +"%H"
+29) File Filtering by Time
+    Modified last 1 day
+    find . -mtime -1
+    Last 7 days
+    find . -mtime -7
+    Files > 1MB
+    find . -size +1M
+    Created today
+    find . -mtime 0
+    Delete older than 30 days
+    find . -mtime +30 -delete
+30) Pipeline & Redirection
+    Save output
+    ls > files.txt
+    Append output
+    ls >> files.txt
+    Count ERROR lines
+    grep "ERROR" log.txt | wc -l
+    Unique customer IDs
+    cut -d',' -f1 orders.csv | sort | uniq
+    Sort and save
+    sort orders.csv > sorted_orders.csv
+31)Compression
+Compress file
+gzip file.txt
+Uncompress
+gunzip file.txt.gz
+Create tar
+tar -cvf logs.tar logs/
+Extract tar
+tar -xvf logs.tar
+Compress folder
+tar -czvf logs.tar.gz logs/
+32)Real Data Engineer Scenarios
+Count failed jobs
+grep "FAILED" jobs.log | wc -l
+Extract failed job IDs
+grep "FAILED" jobs.log | cut -d',' -f1
+Latest job date
+cut -d',' -f2 jobs.log | sort | tail -1
+Unique job IDs
+cut -d',' -f1 jobs.log | sort | uniq
+33) Revenue Problems
+Total revenue
+awk -F',' '{sum += $3} END {print sum}' orders.csv
+Revenue per date
+awk -F',' '{arr[$2]+=$3} END {for(i in arr) print i, arr[i]}' orders.csv
+Max amount
+awk -F',' 'max<$3 {max=$3} END {print max}' orders.csv
+Orders per day
+cut -d',' -f2 orders.csv | sort | uniq -c
+34)Advanced Problems
+Top 10 largest files
+du -ah | sort -rh | head -10
+Count files
+ls | wc -l
+Find all CSV files
+find . -name "*.csv"
+Replace text
+sed 's/FAILED/SUCCESS/g' file.txt
+35) Expert Level
+-Latest order per customer
+sort -t',' -k1,1 -k2,2r file.csv | uniq -f0
+Total revenue per customer
+awk -F',' '{arr[$1]+=$3} END {for(i in arr) print i, arr[i]}' file.csv
+Extract date
+cut -d' ' -f1 file.csv
+Extract hour
+cut -d' ' -f2 file.csv | cut -d':' -f1
+Last 24 hours logs
+find . -mtime -1
+
+
+grep "ERROR" log.txt | awk '{print $1}' | sort | uniq -c | sort -nr

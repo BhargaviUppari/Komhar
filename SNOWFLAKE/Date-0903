@@ -1,5 +1,6 @@
 09/03/26
 
+-- ASSIGNMENT 3
 USE DATABASE SNOWFLAKE_DB;
 
 USE SCHEMA PRACTICE_S;
@@ -104,11 +105,17 @@ ON C.CUSTOMER_ID = F.CUSTOMER_ID
 WHERE F.CUSTOMER_ID IS NULL;
 
 --Calculate monthly revenue from FACT_ORDERS
-SELECT TO_CHAR(ORDER_DATE,'YYYY-MM') AS MONTH,
-       SUM(AMOUNT) AS TOTAL_REVENUE,
+--per month
+SELECT  DATE_TRUNC('MONTH',ORDER_DATE) AS MONTH,
+SUM(AMOUNT) AS TOTAL_REVENUE,
 FROM FACT_ORDERS
-GROUP BY TO_CHAR(ORDER_DATE,'YYYY-MM')
-ORDER BY MONTH;
+GROUP BY MONTH;
+
+-- per week
+SELECT DATE_TRUNC('WEEK',ORDER_DATE) AS WEEKLY,
+SUM(AMOUNT) AS TOTAL_REVENUE,
+FROM FACT_ORDERS
+GROUP BY WEEKLY;
 
 --Compute running total of order amount per customer ordered by date
 SELECT CUSTOMER_ID,ORDER_DATE,AMOUNT,
@@ -140,7 +147,7 @@ ORDER BY CUSTOMER_ID;
 
 --LAG and LEAD are window functions used to access values from previous or next rows without using joins
 --LAG() gets the previous row value
---LEAD()gets the next row value
+--LEAD() gets the next row value
 
 -- Find previous order amount per customer using LAG
 SELECT CUSTOMER_ID, ORDER_DATE, AMOUNT,
@@ -222,7 +229,7 @@ FROM FACT_ORDERS
 WHERE ORDER_DATE >=DATEADD(DAY, -7, CURRENT_DATE);
 
 --From multiple records per ORDER_ID, return the latest status using CDC logic
-SELECT*FROM STG_ORDERS;
+SELECT *FROM STG_ORDERS;
 
 SELECT ORDER_ID, STATUS
 FROM(
@@ -231,3 +238,7 @@ SELECT ORDER_ID, STATUS,
 FROM FACT_ORDERS
 ) T
 WHERE RN = 1;
+
+/*HAVING is used to filter aggregated results after GROUP BY,
+while window functions are used to perform calculations across rows without collapsing the dataset*/
+

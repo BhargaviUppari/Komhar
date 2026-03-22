@@ -50,3 +50,5 @@ vi/vim - used to edit the file,basically to add or make changes.
       [esc :wq - save and quit]
       [:q! - quit without saving]
       [--help(mobaxterm) = if anything needed you can see here]
+
+      

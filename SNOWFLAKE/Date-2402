@@ -63,3 +63,7 @@ select* from tablename
 
 5)RENAME - alter table Customer
            rename column name to names;
+
+
+
+

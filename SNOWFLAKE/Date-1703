@@ -1,0 +1,143 @@
+17/03/26
+
+1)What is function?
+A function is a reusable block of code that,takes input,performs logic,returns a value (mandatory).
+
+User defined function-
+Syntax-
+     CREATE OR REPLACE FUNCTION function_name (input_parameter datatype)
+     RETURNS return_datatype
+     AS
+     $$
+     expression
+     $$;
+
+2)What is procedure?
+A procedure is a set of SQL statements used to perform tasks like inserting, updating, or deleting data.
+
+3)Difference between procedure and function?
+   Function = logic inside query
+   Procedure = complete data workflow
+
+  -Functions are used for data transformation, while procedures are used  for data processing and pipeline execution.
+  
+4)Sample procedure in snowflake?
+
+    CREATE OR REPLACE PROCEDURE insert_order()
+    RETURNS STRING
+    LANGUAGE SQL
+    AS
+    BEGIN
+
+    INSERT INTO orders VALUES (101, CURRENT_DATE, 500);
+
+    RETURN 'INSERT SUCCESS';
+
+    END;
+
+Call insert_order();
+
+5)Procedure with arguments and without arguments 
+--Procedure with Arguments
+    CREATE OR REPLACE PROCEDURE insert_order_with_args(
+        p_order_id NUMBER,
+        p_amount NUMBER
+    )
+    RETURNS STRING
+    LANGUAGE SQL
+    AS
+    BEGIN
+
+    INSERT INTO orders VALUES (p_order_id, CURRENT_DATE, p_amount);
+
+    RETURN 'INSERTED SUCCESSFULLY';
+
+    END;
+    
+CALL insert_order_with_args(102, 800);
+
+--Procedure WITHOUT Arguments
+    CREATE OR REPLACE PROCEDURE delete_old_orders()
+    RETURNS STRING
+    LANGUAGE SQL
+    AS
+    BEGIN
+
+    DELETE FROM orders WHERE order_date < '2023-01-01';
+
+    RETURN 'OLD ORDERS DELETED';
+
+    END;
+
+6)Implementing scd1 with procedure
+SCD1 = Overwrite old data
+If record exists → UPDATE
+If new → INSERT
+no history maintained
+
+    CREATE OR REPLACE PROCEDURE scd1_load()
+    RETURNS STRING
+    LANGUAGE SQL
+    AS
+    BEGIN
+
+    MERGE INTO dim_customer tgt
+    USING stg_customer src
+    ON tgt.customer_id = src.customer_id
+
+    WHEN MATCHED THEN
+        UPDATE SET 
+            tgt.name = src.name,
+            tgt.city = src.city
+
+    WHEN NOT MATCHED THEN
+        INSERT (customer_id, name, city)
+        VALUES (src.customer_id, src.name, src.city);
+
+    RETURN 'SCD1 LOAD COMPLETED';
+
+    END;
+
+7)Implementing scd2 with procedure
+SCD2 = Maintain history
+If record changed:
+        Expire old record (end_date)
+        Insert new record
+If new → Insert
+
+CREATE OR REPLACE PROCEDURE scd2_load()
+RETURNS STRING
+LANGUAGE SQL
+AS
+BEGIN
+
+-- Step 1: Expire old records
+UPDATE dim_customer tgt
+SET end_date = CURRENT_DATE,
+    is_active = 'N'
+FROM stg_customer src
+WHERE tgt.customer_id = src.customer_id
+AND tgt.is_active = 'Y'
+AND (tgt.name <> src.name OR tgt.city <> src.city);
+
+-- Step 2: Insert new records
+INSERT INTO dim_customer (
+    customer_id, name, city, start_date, end_date, is_active
+)
+SELECT 
+    src.customer_id,
+    src.name,
+    src.city,
+    CURRENT_DATE,
+    NULL,
+    'Y'
+FROM stg_customer src
+LEFT JOIN dim_customer tgt
+ON src.customer_id = tgt.customer_id
+AND tgt.is_active = 'Y'
+WHERE tgt.customer_id IS NULL
+   OR (tgt.name <> src.name OR tgt.city <> src.city);
+
+RETURN 'SCD2 LOAD COMPLETED';
+
+END;
